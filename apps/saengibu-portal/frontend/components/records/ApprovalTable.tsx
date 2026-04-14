@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Table, THead, TBody, TH, TR, TD } from "@/components/ui/Table";
 import { useApprovals, useApprove } from "@/lib/queries";
-import { Filter } from "lucide-react";
+import { Filter, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 
 function formatDate(iso: string): string {
@@ -27,6 +27,22 @@ const STATUS_TONE: Record<string, "pending" | "approved" | "danger" | "review"> 
   rejected: "danger",
 };
 
+function SkeletonRows() {
+  return (
+    <>
+      {Array.from({ length: 4 }).map((_, i) => (
+        <TR key={i}>
+          {Array.from({ length: 7 }).map((__, j) => (
+            <TD key={j}>
+              <div className="skeleton h-4 w-full max-w-[140px]" />
+            </TD>
+          ))}
+        </TR>
+      ))}
+    </>
+  );
+}
+
 export function ApprovalTable() {
   const [filter, setFilter] = useState<string | undefined>();
   const { data, isLoading } = useApprovals(filter);
@@ -45,28 +61,29 @@ export function ApprovalTable() {
       </div>
 
       <Table>
+        <caption className="sr-only">승인 대기 기록 목록</caption>
         <THead>
           <TR>
-            <TH>학년/반</TH>
-            <TH>이름</TH>
-            <TH>영역</TH>
-            <TH>제출일시</TH>
-            <TH>상태</TH>
-            <TH>관리</TH>
+            <TH scope="col">학년/반</TH>
+            <TH scope="col">이름</TH>
+            <TH scope="col">영역</TH>
+            <TH scope="col">제출일시</TH>
+            <TH scope="col">AI 경보</TH>
+            <TH scope="col">상태</TH>
+            <TH scope="col">관리</TH>
           </TR>
         </THead>
         <TBody>
-          {isLoading && (
-            <TR>
-              <TD colSpan={6} className="text-center text-ink-gray">
-                불러오는 중…
-              </TD>
-            </TR>
-          )}
+          {isLoading && <SkeletonRows />}
           {!isLoading && rows.length === 0 && (
             <TR>
-              <TD colSpan={6} className="text-center text-ink-gray">
-                승인 대기 요청이 없습니다.
+              <TD colSpan={7} className="text-center py-10">
+                <div className="text-heading font-semibold text-ink-dark">
+                  오늘은 검토할 초안이 없어요
+                </div>
+                <div className="mt-1 text-body text-ink-gray">
+                  모두 처리하셨어요. 잠깐 쉬어가도 좋아요.
+                </div>
               </TD>
             </TR>
           )}
@@ -78,6 +95,16 @@ export function ApprovalTable() {
               <TD className="font-semibold">{r.student.name_masked}</TD>
               <TD>{r.section.name}</TD>
               <TD className="text-ink-gray">{formatDate(r.submitted_at)}</TD>
+              <TD>
+                {r.ai_warn_count > 0 ? (
+                  <span className="badge badge-ai inline-flex items-center gap-1">
+                    <Sparkles className="h-3 w-3" />
+                    {r.ai_warn_count}건
+                  </span>
+                ) : (
+                  <span className="text-ink-light text-caption">—</span>
+                )}
+              </TD>
               <TD>
                 <Badge tone={STATUS_TONE[r.status] ?? "neutral"}>
                   {STATUS_LABEL[r.status] ?? r.status}

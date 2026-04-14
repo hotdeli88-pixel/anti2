@@ -15,6 +15,16 @@
   * {
     box-sizing: border-box;
   }
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand ring-offset-2 ring-offset-surface-body;
+  }
+  /* 접근성: reduce-motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
 
 @layer components {
@@ -52,6 +62,25 @@
   }
   .badge-neutral {
     @apply bg-[#F3F4F6] text-[#6B7280];
+  }
+  .badge-ai {
+    @apply bg-[#EDE9FE] text-[#7C3AED];
+  }
+
+  /* Skeleton */
+  .skeleton {
+    @apply animate-pulse-soft rounded-md bg-surface-subtle;
+  }
+
+  /* AI 그라데이션 (피드백 완료 등) */
+  .bg-ai-gradient {
+    background: linear-gradient(135deg, #13C3C3 0%, #7C3AED 100%);
+  }
+  .text-ai-gradient {
+    background: linear-gradient(135deg, #13C3C3 0%, #7C3AED 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 }
 

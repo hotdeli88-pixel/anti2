@@ -7,6 +7,14 @@ from app.models.review import Review, ReviewComment, ReviewStep
 from app.models.feedback import FeedbackReport, Violation
 from app.models.guideline import Guideline, SchoolDecision
 from app.models.audit import AuditLog
+from app.models.standards import (
+    AchievementStandard,
+    ActivityTag,
+    AiSuggestion,
+    FavoriteTemplate,
+    NoticePost,
+    UploadedFile,
+)
 
 __all__ = [
     "Base",
@@ -33,4 +41,10 @@ __all__ = [
     "Guideline",
     "SchoolDecision",
     "AuditLog",
+    "AchievementStandard",
+    "ActivityTag",
+    "FavoriteTemplate",
+    "UploadedFile",
+    "AiSuggestion",
+    "NoticePost",
 ]
