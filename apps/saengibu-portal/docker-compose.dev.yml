@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: saengibu-pg
+    environment:
+      POSTGRES_USER: saengibu
+      POSTGRES_PASSWORD: saengibu
+      POSTGRES_DB: saengibu
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - saengibu-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U saengibu"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: saengibu-redis
+    command: ["redis-server", "--requirepass", "saengibu", "--appendonly", "yes"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - saengibu-redis-data:/data
+
+volumes:
+  saengibu-pg-data:
+  saengibu-redis-data:
