@@ -7,12 +7,20 @@
 ```text
 anti2/
 ├── apps/                    # 실행 가능한 애플리케이션
-│   └── saengibu-portal/     # 학교생활기록부 포털 (Next.js + FastAPI) — 예정
+│   └── saengibu-portal/     # 학교생활기록부 포털 (Next.js + FastAPI)
+│       ├── backend/         # FastAPI 서비스 (uv workspace member)
+│       ├── frontend/        # Next.js 15 App Router
+│       └── docs/            # 설계 문서 (ARCHITECTURE·ERD·API·AI_PIPELINE·RBAC·WORKFLOW·FRONTEND)
 ├── packages/                # 공용 라이브러리/모듈
+├── dev/active/              # 진행 중 프로젝트 플랜·컨텍스트·태스크
 ├── pyproject.toml           # uv workspace 루트
 ├── .python-version
 └── MONOREPO_GUIDELINES.md   # 상세 운영 지침
 ```
+
+## 활성 프로젝트
+
+- **[saengibu-portal](./apps/saengibu-portal/)** — 학교생활기록부 포털 (훈령 제555호·2026 기재요령 준수). 플랜: [`dev/active/saengibu-portal-plan.md`](./dev/active/saengibu-portal-plan.md)
 
 ## 시작
 
