@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import random
 import uuid
 from datetime import date, datetime, timedelta, timezone
 
@@ -227,12 +228,15 @@ def demo_seed_cmd(
                 await db.flush()
                 record.current_version_id = version.id
 
+                # M-3: 결정성 시드 (DEMO_SEED=1234 또는 student_no 해시 기반).
+                _demo_rng = random.Random(int(student.student_no))
+                _hours_back = _demo_rng.randint(0, 23)
                 review = Review(
                     record_id=record.id,
                     version_id=version.id,
                     requested_by=teacher.id,
                     status="in_progress",
-                    created_at=datetime.now(tz=timezone.utc) - timedelta(hours=uuid.uuid4().int % 24),
+                    created_at=datetime.now(tz=timezone.utc) - timedelta(hours=_hours_back),
                 )
                 db.add(review)
                 await db.flush()

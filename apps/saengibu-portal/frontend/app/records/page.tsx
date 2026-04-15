@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
 import { useApprovals } from "@/lib/queries";
 
 export default function RecordsPage() {
+  // M-5: ApprovalTable에 prop 전달, 동일 queryKey 단일 호출 유지.
   const { data: approvals } = useApprovals("pending");
   const pendingCount = approvals?.length ?? 0;
 
@@ -30,7 +31,7 @@ export default function RecordsPage() {
         </TabsList>
 
         <TabsContent value="approval">
-          <ApprovalTable />
+          <ApprovalTable defaultStatus="pending" />
         </TabsContent>
         <TabsContent value="guidelines">
           <GuidelinesPanel />

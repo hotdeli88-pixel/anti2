@@ -27,3 +27,12 @@ backend:
 
 frontend:
 	cd frontend && pnpm dev
+
+verify-standards:
+	cd backend && uv run --package saengibu-portal-backend python ../scripts/verify_coverage.py --out ../data/reports/coverage_$$(date +%F).md
+
+validate-jsonl:
+	@for f in data/processed/middle_*.jsonl; do \
+		echo "=== $$f ==="; \
+		uv run --package saengibu-portal-backend python scripts/validate.py "$$f"; \
+	done

@@ -17,7 +17,7 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID as PG_UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, uuid_pk
 
@@ -34,10 +34,68 @@ class AchievementStandard(Base, TimestampMixin):
     grade: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     subject_code: Mapped[str] = mapped_column(String(20), nullable=False)  # 국어/수학/...
     domain: Mapped[str | None] = mapped_column(String(80))  # 대영역 (예: "수와 연산")
+    domain_code: Mapped[str | None] = mapped_column(String(20))  # 정규화 영역 코드 ("01" 등)
     unit_code: Mapped[str | None] = mapped_column(String(30))  # "1단원"
+    unit_title: Mapped[str | None] = mapped_column(String(120))
     code: Mapped[str] = mapped_column(String(30), nullable=False)  # "[9수01-01]"
     statement: Mapped[str] = mapped_column(Text, nullable=False)
+    eval_scale: Mapped[str] = mapped_column(String(10), nullable=False, default="5grade")
+    min_achievement: Mapped[str | None] = mapped_column(String(1))  # 'C' or 'E'
+    area_category: Mapped[str | None] = mapped_column(String(20))  # section_types soft link
+    source_doc: Mapped[str | None] = mapped_column(String(200))
+    source_page: Mapped[int | None] = mapped_column(SmallInteger)
+    source_json: Mapped[dict | None] = mapped_column(JSONB)
+    rules_version: Mapped[str] = mapped_column(String(20), nullable=False, default="2022-33")
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+
+    levels: Mapped[list[AchievementLevel]] = relationship(
+        "AchievementLevel", back_populates="standard", cascade="all, delete-orphan",
+        order_by="AchievementLevel.order_index.desc()",
+    )
+
+
+class AchievementLevel(Base, TimestampMixin):
+    """성취기준별 성취수준 (A/B/C/D/E 또는 A/B/C 또는 P/F)."""
+
+    __tablename__ = "achievement_levels"
+    __table_args__ = (UniqueConstraint("standard_id", "level", name="uq_levels_standard_level"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    standard_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("achievement_standards.id", ondelete="CASCADE"), nullable=False
+    )
+    level: Mapped[str] = mapped_column(String(1), nullable=False)
+    scale: Mapped[str] = mapped_column(String(10), nullable=False)
+    descriptor: Mapped[str] = mapped_column(Text, nullable=False)
+    order_index: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    cutline_hint: Mapped[str | None] = mapped_column(String(80))
+    source_doc: Mapped[str | None] = mapped_column(String(200))
+    source_page: Mapped[int | None] = mapped_column(SmallInteger)
+
+    standard: Mapped[AchievementStandard] = relationship(back_populates="levels")
+
+
+class DomainLevel(Base, TimestampMixin):
+    """영역별 성취수준 (성취기준 묶음 단위 종합 수준)."""
+
+    __tablename__ = "domain_levels"
+    __table_args__ = (
+        UniqueConstraint(
+            "curriculum", "school_level", "grade", "subject_code", "domain", "level",
+            name="uq_domain_levels_lookup",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    curriculum: Mapped[str] = mapped_column(String(30), nullable=False, default="2022_revised")
+    school_level: Mapped[str] = mapped_column(String(10), nullable=False)
+    grade: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    subject_code: Mapped[str] = mapped_column(String(20), nullable=False)
+    domain: Mapped[str] = mapped_column(String(80), nullable=False)
+    level: Mapped[str] = mapped_column(String(1), nullable=False)
+    descriptor: Mapped[str] = mapped_column(Text, nullable=False)
+    source_doc: Mapped[str | None] = mapped_column(String(200))
+    source_page: Mapped[int | None] = mapped_column(SmallInteger)
 
 
 class ActivityTag(Base, TimestampMixin):

@@ -9,9 +9,11 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from sqlalchemy.orm import selectinload
+
 from app.core.cookies import clear_session_cookies, set_session_cookies
 from app.core.db import get_db, set_tenant
-from app.core.deps import CurrentUser, current_user_any_status
+from app.core.deps import CurrentUser, active_roles_from_user, current_user_any_status
 from app.core.security import (
     check_email_domain,
     create_session_token,
@@ -19,34 +21,35 @@ from app.core.security import (
     verify_google_id_token,
 )
 from app.models.school import School
-from app.models.user import RoleAssignment, User, UserApproval
+from app.models.user import User, UserApproval
 from app.schemas.auth import GoogleLoginRequest, MeResponse, SchoolRef
 from app.services.audit.logger import write_audit
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-async def _active_roles(db: AsyncSession, user_id) -> list[str]:
-    rows = await db.scalars(
-        select(RoleAssignment).where(
-            RoleAssignment.user_id == user_id, RoleAssignment.ended_at.is_(None)
-        )
-    )
-    return [r.role for r in rows]
-
-
 async def _build_me(db: AsyncSession, user: User) -> MeResponse:
+    """C-1: roles는 user.roles relationship 기반 메모리 필터로 추출.
+    M-2: School FK가 학교 row와 매칭 안 되면 500 (orphan FK).
+    """
     school = await db.scalar(select(School).where(School.id == user.school_id))
-    roles = await _active_roles(db, user.id)
+    if school is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "type": "data.orphan_school_fk",
+                "title": "사용자 학교 매핑에 데이터 정합성 오류가 있습니다",
+                "detail": f"user.school_id={user.school_id} 에 해당하는 schools row 없음",
+            },
+        )
+    roles = active_roles_from_user(user)
     return MeResponse(
         id=user.id,
         email=user.email,
         name=user.name,
         status=user.status,
         roles=roles,
-        school=SchoolRef(id=school.id, name=school.name) if school else SchoolRef(
-            id=user.school_id, name="(미확인 학교)"
-        ),
+        school=SchoolRef(id=school.id, name=school.name),
     )
 
 
@@ -79,10 +82,14 @@ async def google_login(
             },
         )
 
-    # 기존 사용자 조회 (google_sub 우선, 이메일 fallback)
-    user: User | None = await db.scalar(select(User).where(User.google_sub == google_sub))
+    # 기존 사용자 조회 (google_sub 우선, 이메일 fallback). roles eager load.
+    user: User | None = await db.scalar(
+        select(User).where(User.google_sub == google_sub).options(selectinload(User.roles))
+    )
     if not user:
-        user = await db.scalar(select(User).where(User.email == email))
+        user = await db.scalar(
+            select(User).where(User.email == email).options(selectinload(User.roles))
+        )
 
     if not user:
         # 첫 가입: pending 상태로 생성. 학교 매핑은 "기본 학교"에 귀속 (단일 학교 배포 전제).
@@ -112,7 +119,8 @@ async def google_login(
     user.last_login_at = datetime.now(tz=timezone.utc)
 
     await set_tenant(db, user.school_id)
-    roles = await _active_roles(db, user.id)
+    # 신규 가입 직후엔 user.roles가 빈 컬렉션이지만 쿼리 안전. 기존 사용자는 selectinload로 로드됨.
+    roles = active_roles_from_user(user)
 
     csrf = generate_csrf_token()
     token = create_session_token(

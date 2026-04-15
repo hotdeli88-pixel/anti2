@@ -17,11 +17,22 @@ export function Providers({ children }: { children: ReactNode }) {
         },
       }),
   );
-  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
+  // M-7: Google Client ID 미설정 시 silent fail 방지.
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  if (!googleClientId && typeof window !== "undefined") {
+    // eslint-disable-next-line no-console
+    console.error(
+      "[saengibu] NEXT_PUBLIC_GOOGLE_CLIENT_ID 환경 변수가 설정되지 않았습니다. " +
+        "구글 로그인이 비활성화됩니다.",
+    );
+  }
 
-  return (
-    <GoogleOAuthProvider clientId={googleClientId}>
-      <QueryClientProvider client={qc}>{children}</QueryClientProvider>
-    </GoogleOAuthProvider>
+  const tree = (
+    <QueryClientProvider client={qc}>{children}</QueryClientProvider>
   );
+
+  if (!googleClientId) {
+    return tree;
+  }
+  return <GoogleOAuthProvider clientId={googleClientId}>{tree}</GoogleOAuthProvider>;
 }

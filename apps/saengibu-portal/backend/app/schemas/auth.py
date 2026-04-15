@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -29,7 +30,7 @@ class MeResponse(BaseModel):
     id: UUID
     email: str
     name: str
-    status: str
+    status: Literal["pending", "active", "suspended"]
     roles: list[str]
     school: SchoolRef
     homeroom_of: list[HomeroomOf] = []
@@ -37,6 +38,8 @@ class MeResponse(BaseModel):
 
 
 class UserApprovalDecision(BaseModel):
-    decision: str = Field(..., pattern="^(approved|rejected)$")
+    """M-8: pattern → Literal로 OpenAPI enum 자동 생성."""
+
+    decision: Literal["approved", "rejected"]
     role: str | None = None
     reason: str | None = None

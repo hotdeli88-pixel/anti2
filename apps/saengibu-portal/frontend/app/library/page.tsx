@@ -3,15 +3,12 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
 import { Badge } from "@/components/ui/Badge";
+import { AchievementLevelBadges } from "@/components/wizard/AchievementLevelBadges";
+import { LevelDescriptorDrawer } from "@/components/wizard/LevelDescriptorDrawer";
+import { useStandards } from "@/lib/queries";
 import { BookMarked, Tag, Sparkles, Search } from "lucide-react";
 import { useState } from "react";
-
-const STANDARDS = [
-  { grade: 1, subject: "수학", code: "[9수01-01]", statement: "소인수분해의 뜻을 알고, 자연수를 소인수분해 할 수 있다.", domain: "수와 연산" },
-  { grade: 1, subject: "수학", code: "[9수02-01]", statement: "다양한 상황을 문자를 사용한 식으로 나타낼 수 있다.", domain: "문자와 식" },
-  { grade: 1, subject: "국어", code: "[9국02-01]", statement: "읽기는 글에 나타난 정보와 독자의 배경지식을 활용하여 문제를 해결하는 과정임을 이해한다.", domain: "읽기" },
-  { grade: 2, subject: "영어", code: "[9영02-02]", statement: "자신이나 주변 사람 및 일상생활에 관해 묻거나 답할 수 있다.", domain: "말하기" },
-];
+import type { Level } from "@/types/standards";
 
 const TAGS = [
   { subject: "수학", category: "수업활동", label: "문제풀이 활동", count: 12 },
@@ -28,15 +25,21 @@ const TEMPLATES = [
   { title: "자율활동 학급 자치 주도 사례", section: "자율·자치활동", bytes: 1380, lastUsed: "2026-04-05" },
 ];
 
+const SUBJECTS = ["수학", "국어", "영어", "과학", "사회", "역사", "도덕", "체육", "음악", "미술"];
+
 export default function LibraryPage() {
   const [q, setQ] = useState("");
-  const filteredStandards = STANDARDS.filter(
-    (s) =>
-      !q ||
-      s.code.includes(q) ||
-      s.statement.includes(q) ||
-      s.subject.includes(q),
-  );
+  const [grade, setGrade] = useState<number | undefined>(undefined);
+  const [subject, setSubject] = useState<string | undefined>(undefined);
+  const [drawerStandardId, setDrawerStandardId] = useState<number | null>(null);
+
+  const { data, isLoading } = useStandards({
+    schoolLevel: "middle",
+    grade,
+    subject,
+    search: q || undefined,
+    limit: 50,
+  });
 
   return (
     <AppShell title="라이브러리">
@@ -44,15 +47,6 @@ export default function LibraryPage() {
         <p className="text-body-lg text-ink-gray">
           학교 전체에서 공유되는 성취기준·활동 태그·개인 즐겨찾기 템플릿입니다.
         </p>
-      </div>
-      <div className="mb-4 flex items-center gap-2 rounded-md border border-surface-border bg-white px-3 py-2">
-        <Search className="h-4 w-4 text-ink-gray" />
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="성취기준 코드·키워드 검색 (예: 9수, 토론)"
-          className="flex-1 border-none bg-transparent text-body outline-none placeholder:text-ink-light"
-        />
       </div>
 
       <Tabs defaultValue="standards">
@@ -69,28 +63,105 @@ export default function LibraryPage() {
         </TabsList>
 
         <TabsContent value="standards">
-          <h2 className="mb-4 text-title font-bold">2022 개정 교육과정 · 중학교</h2>
+          <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto_auto]">
+            <div className="flex items-center gap-2 rounded-md border border-surface-border bg-white px-3 py-2">
+              <Search className="h-4 w-4 text-ink-gray" />
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="성취기준 코드·키워드 검색 (예: 9수, 토론)"
+                className="flex-1 border-none bg-transparent text-body outline-none placeholder:text-ink-light"
+                aria-label="성취기준 검색"
+              />
+            </div>
+            <select
+              value={grade ?? ""}
+              onChange={(e) => setGrade(e.target.value ? Number(e.target.value) : undefined)}
+              className="rounded-md border border-surface-border bg-white px-3 py-2 text-body"
+              aria-label="학년 필터"
+            >
+              <option value="">전체 학년</option>
+              <option value="1">1학년</option>
+              <option value="2">2학년</option>
+              <option value="3">3학년</option>
+            </select>
+            <select
+              value={subject ?? ""}
+              onChange={(e) => setSubject(e.target.value || undefined)}
+              className="rounded-md border border-surface-border bg-white px-3 py-2 text-body"
+              aria-label="과목 필터"
+            >
+              <option value="">전체 과목</option>
+              {SUBJECTS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <h2 className="mb-3 text-title font-bold">2022 개정 교육과정 · 중학교</h2>
+
+          {isLoading && (
+            <div className="space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="skeleton h-24 w-full" />
+              ))}
+            </div>
+          )}
+
+          {!isLoading && (data?.items.length ?? 0) === 0 && (
+            <div className="rounded-md border border-surface-border bg-surface-body p-10 text-center text-body text-ink-gray">
+              조건에 맞는 성취기준이 없어요. 필터를 바꾸거나 검색어를 비워보세요.
+            </div>
+          )}
+
           <ul className="space-y-3">
-            {filteredStandards.map((s) => (
-              <li key={s.code} className="card p-4">
-                <div className="flex items-start gap-4">
-                  <div className="flex gap-2">
-                    <Badge tone="review">{s.subject}</Badge>
-                    <Badge tone="neutral">{s.grade}학년</Badge>
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-mono text-body-sm font-semibold text-brand">
-                      {s.code}
+            {data?.items.map((s) => {
+              const availableLevels: Level[] = (s.levels?.map((l) => l.level) ??
+                []) as Level[];
+              return (
+                <li key={s.id} className="card p-4">
+                  <div className="flex items-start gap-4">
+                    <div className="flex shrink-0 gap-2">
+                      <Badge tone="review">{s.subject_code}</Badge>
+                      <Badge tone="neutral">{s.grade}학년</Badge>
                     </div>
-                    <div className="mt-1 text-body text-ink-dark">{s.statement}</div>
-                    <div className="mt-1 text-caption text-ink-light">
-                      {s.domain}
+                    <div className="flex-1">
+                      <div className="font-mono text-body-sm font-semibold text-brand">
+                        {s.code}
+                      </div>
+                      <div className="mt-1 text-body text-ink-dark">{s.statement}</div>
+                      {s.domain && (
+                        <div className="mt-1 text-caption text-ink-light">
+                          {s.domain}
+                          {s.unit_title ? ` · ${s.unit_title}` : ""}
+                        </div>
+                      )}
+                      {availableLevels.length > 0 && (
+                        <div className="mt-2 flex items-center justify-between">
+                          <AchievementLevelBadges available={availableLevels} size="sm" />
+                          <button
+                            type="button"
+                            onClick={() => setDrawerStandardId(s.id)}
+                            className="text-caption font-semibold text-brand hover:underline"
+                          >
+                            5단계 자세히
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
+
+          <LevelDescriptorDrawer
+            standardId={drawerStandardId}
+            open={drawerStandardId !== null}
+            onOpenChange={(o) => !o && setDrawerStandardId(null)}
+          />
         </TabsContent>
 
         <TabsContent value="tags">

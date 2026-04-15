@@ -43,8 +43,15 @@ function SkeletonRows() {
   );
 }
 
-export function ApprovalTable() {
-  const [filter, setFilter] = useState<string | undefined>();
+interface ApprovalTableProps {
+  /** 부모로부터 초기 필터 prop. 미지정 시 자체 필터 토글. */
+  defaultStatus?: string;
+}
+
+export function ApprovalTable({ defaultStatus }: ApprovalTableProps = {}) {
+  // M-5: 상위에서 동일 queryKey로 호출되는 케이스를 피하기 위해 prop 우선,
+  // 토글은 같은 키 prop 갱신으로 단일 호출 유지.
+  const [filter, setFilter] = useState<string | undefined>(defaultStatus);
   const { data, isLoading } = useApprovals(filter);
   const approve = useApprove();
 
@@ -78,11 +85,14 @@ export function ApprovalTable() {
           {!isLoading && rows.length === 0 && (
             <TR>
               <TD colSpan={7} className="text-center py-10">
-                <div className="text-heading font-semibold text-ink-dark">
-                  오늘은 검토할 초안이 없어요
-                </div>
-                <div className="mt-1 text-body text-ink-gray">
-                  모두 처리하셨어요. 잠깐 쉬어가도 좋아요.
+                {/* M-10: 빈 상태에 aria-live 보강 */}
+                <div role="status" aria-live="polite">
+                  <div className="text-heading font-semibold text-ink-dark">
+                    오늘은 검토할 초안이 없어요
+                  </div>
+                  <div className="mt-1 text-body text-ink-gray">
+                    모두 처리하셨어요. 잠깐 쉬어가도 좋아요.
+                  </div>
                 </div>
               </TD>
             </TR>

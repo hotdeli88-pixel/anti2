@@ -35,6 +35,9 @@ TRANSITIONS: dict[tuple[Status, Event], Status] = {
     (Status.NEIS_COPIED, Event.COPY): Status.NEIS_COPIED,
     (Status.APPROVED, Event.CORRECTION_REQUEST): Status.CORRECTION_PENDING,
     (Status.CORRECTION_PENDING, Event.PRINCIPAL_SIGN): Status.APPROVED,
+    # M-4: 정정 요청 후 교사가 수정본을 다시 1검부터 받도록 SUBMIT 전이 허용.
+    # 정책 (PO 합의 근거: 정정은 본문 수정 가능 → 새 1검부터 시작이 안전).
+    (Status.CORRECTION_PENDING, Event.SUBMIT): Status.REVIEW_1,
 }
 
 

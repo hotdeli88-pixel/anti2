@@ -39,6 +39,10 @@ async def assigned_to_me(
     status_filter: str | None = None,
 ) -> list[ApprovalItem]:
     """내가 결재해야 할 목록. 역할·scope 기반으로 결정."""
+    # C-2: 빈 roles 사용자는 즉시 빈 목록 반환 (담임 fallback 제거)
+    if not user.roles:
+        return []
+
     # MVP: 진행 중 reviews 중 step.expected_role이 내 역할에 포함 + 스코프 매칭
     base = (
         select(Review, ReviewStep, Record, Student, Enrollment, Class, Grade, SectionType, User, FeedbackReport)
@@ -58,7 +62,7 @@ async def assigned_to_me(
         .where(
             Review.status == "in_progress",
             ReviewStep.decision.is_(None),
-            ReviewStep.expected_role.in_(user.roles or ["homeroom"]),
+            ReviewStep.expected_role.in_(user.roles),
             Record.school_id == user.school_id,
         )
         .order_by(Review.created_at.desc())
@@ -127,8 +131,17 @@ async def decide_step(
             status_code=409, detail={"type": "review.already_decided"}
         )
 
+    # M-6: step_no 범위 사전 검증
+    if step_no not in (1, 2, 3):
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "type": "review.invalid_step_no",
+                "title": "step_no는 1, 2, 3 중 하나여야 합니다",
+            },
+        )
     # 현재 record.status 가 이 step에 해당해야
-    expected_status = {1: "review_1", 2: "review_2", 3: "review_3"}.get(step_no)
+    expected_status = {1: "review_1", 2: "review_2", 3: "review_3"}[step_no]
     if record.status != expected_status:
         raise HTTPException(
             status_code=409,
@@ -169,9 +182,11 @@ async def decide_step(
         raise HTTPException(status_code=409, detail={"type": "workflow.error", "title": str(e)}) from e
 
     if payload.decision == "rejected":
-        # 하위 step 결과도 무효화 (재제출 시 1검부터)
+        # C-7: 하위 step 결과만 무효화. 현재 step의 'rejected' 결정은 위 152행에서 설정한 값을 보존.
+        # 정책: 재제출 시 draft → review_1 부터 다시 시작하되, 본 review 행은 closed로 종료하고
+        # 새 review 행이 생성되도록 한다 (사용자가 다시 제출하면 새로운 reviews row).
         for s in review.steps:
-            if s.step_no <= step_no:
+            if s.step_no < step_no:
                 s.decision = None
                 s.decided_at = None
         review.status = "rejected"

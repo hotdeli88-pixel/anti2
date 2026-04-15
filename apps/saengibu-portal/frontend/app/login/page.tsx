@@ -3,8 +3,10 @@
 import { GoogleLogin } from "@react-oauth/google";
 import { useGoogleLogin } from "@/lib/queries";
 import { useRouter } from "next/navigation";
-import { BookOpen, ShieldCheck } from "lucide-react";
+import { BookOpen, ShieldCheck, AlertTriangle } from "lucide-react";
 import { useState } from "react";
+
+const HAS_GOOGLE_CLIENT = Boolean(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
 
 export default function LoginPage() {
   const router = useRouter();
@@ -33,7 +35,18 @@ export default function LoginPage() {
           <br />첫 로그인 시 관리자 승인이 필요합니다.
         </p>
 
-        <div className="flex justify-center">
+        {!HAS_GOOGLE_CLIENT && (
+          <div className="mb-4 flex items-start gap-2 rounded-md border border-warn/30 bg-warn-bg/60 p-3 text-sm text-ink-dark">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warn" />
+            <div>
+              <b>구글 로그인이 비활성화되어 있습니다.</b>
+              <br />
+              관리자가 <code>NEXT_PUBLIC_GOOGLE_CLIENT_ID</code> 환경변수를 설정해야 합니다.
+            </div>
+          </div>
+        )}
+
+        {HAS_GOOGLE_CLIENT && <div className="flex justify-center">
           <GoogleLogin
             onSuccess={async (res) => {
               setError(null);
@@ -61,7 +74,7 @@ export default function LoginPage() {
             shape="pill"
             locale="ko"
           />
-        </div>
+        </div>}
 
         {error && (
           <div className="mt-6 rounded-md border border-danger/20 bg-red-50 p-3 text-sm text-danger">

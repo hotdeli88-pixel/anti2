@@ -61,6 +61,22 @@ def generate_csrf_token() -> str:
     return secrets.token_urlsafe(32)
 
 
+def should_rotate_session(claims: dict[str, Any], threshold_ratio: float = 0.25) -> bool:
+    """세션 잔여 수명이 전체의 `threshold_ratio` 미만이면 True.
+
+    예: refresh_token_expire_hours=24, threshold_ratio=0.25 → 잔여 6시간 이하면 갱신.
+    """
+    iat = claims.get("iat")
+    exp = claims.get("exp")
+    if not iat or not exp:
+        return False
+    total = exp - iat
+    if total <= 0:
+        return False
+    remaining = exp - int(_now().timestamp())
+    return remaining > 0 and (remaining / total) < threshold_ratio
+
+
 def verify_google_id_token(credential: str) -> dict[str, Any]:
     """Verify Google ID token and return payload. Raises ValueError on failure."""
     settings = get_settings()

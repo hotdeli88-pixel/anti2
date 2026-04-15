@@ -2,13 +2,18 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, uuid_pk
+
+
+def _utc_now() -> datetime:
+    """tz-aware datetime callable used as SQLAlchemy default."""
+    return datetime.now(tz=timezone.utc)
 
 
 class User(Base, TimestampMixin):
@@ -62,7 +67,10 @@ class RoleAssignment(Base):
         PG_UUID(as_uuid=True), ForeignKey("academic_years.id")
     )
     started_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, default=datetime.utcnow
+        DateTime(timezone=True),
+        nullable=False,
+        default=_utc_now,
+        server_default=func.now(),
     )
     ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 

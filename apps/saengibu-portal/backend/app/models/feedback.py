@@ -2,13 +2,17 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, uuid_pk
+
+
+def _utc_now() -> datetime:
+    return datetime.now(tz=timezone.utc)
 
 
 class FeedbackReport(Base):
@@ -28,7 +32,10 @@ class FeedbackReport(Base):
     total_violations: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     total_warnings: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, default=datetime.utcnow
+        DateTime(timezone=True),
+        nullable=False,
+        default=_utc_now,
+        server_default=func.now(),
     )
 
 

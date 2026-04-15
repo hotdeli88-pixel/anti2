@@ -9,6 +9,13 @@ import type {
   MeResponse,
   SchoolDecision,
 } from "@/types/record";
+import type {
+  AchievementLevel,
+  AchievementStandard,
+  CurriculumMatrixEntry,
+  DomainLevel,
+  StandardsListPage,
+} from "@/types/standards";
 
 export function useMe() {
   return useQuery<MeResponse | null>({
@@ -106,5 +113,83 @@ export function useGoogleLogin() {
         method: "POST",
         body: JSON.stringify({ credential }),
       }),
+  });
+}
+
+// ===== Sprint 1: Standards / Levels / Domain levels / Curricula =====
+
+interface StandardsFilter {
+  schoolLevel?: string;
+  grade?: number;
+  subject?: string;
+  search?: string;
+  cursor?: string;
+  limit?: number;
+}
+
+function standardsQs(f: StandardsFilter): string {
+  const params = new URLSearchParams();
+  if (f.schoolLevel) params.set("school_level", f.schoolLevel);
+  if (f.grade != null) params.set("grade", String(f.grade));
+  if (f.subject) params.set("subject", f.subject);
+  if (f.search) params.set("search", f.search);
+  if (f.cursor) params.set("cursor", f.cursor);
+  if (f.limit) params.set("limit", String(f.limit));
+  const q = params.toString();
+  return q ? `?${q}` : "";
+}
+
+export function useStandards(filter: StandardsFilter = {}) {
+  return useQuery<StandardsListPage>({
+    queryKey: ["standards", filter],
+    queryFn: () => apiFetch<StandardsListPage>(`/standards${standardsQs(filter)}`),
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
+export function useStandard(standardId: number | undefined) {
+  return useQuery<AchievementStandard>({
+    queryKey: ["standard", standardId],
+    queryFn: () => apiFetch<AchievementStandard>(`/standards/${standardId}`),
+    enabled: standardId != null,
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
+export function useStandardLevels(standardId: number | undefined) {
+  return useQuery<AchievementLevel[]>({
+    queryKey: ["standard-levels", standardId],
+    queryFn: () => apiFetch<AchievementLevel[]>(`/standards/${standardId}/levels`),
+    enabled: standardId != null,
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
+interface DomainLevelsFilter {
+  schoolLevel?: string;
+  grade?: number;
+  subject?: string;
+  domain?: string;
+}
+
+export function useDomainLevels(filter: DomainLevelsFilter = {}) {
+  const params = new URLSearchParams();
+  if (filter.schoolLevel) params.set("school_level", filter.schoolLevel);
+  if (filter.grade != null) params.set("grade", String(filter.grade));
+  if (filter.subject) params.set("subject", filter.subject);
+  if (filter.domain) params.set("domain", filter.domain);
+  const q = params.toString();
+  return useQuery<DomainLevel[]>({
+    queryKey: ["domain-levels", filter],
+    queryFn: () => apiFetch<DomainLevel[]>(`/domain-levels${q ? `?${q}` : ""}`),
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
+export function useCurricula() {
+  return useQuery<CurriculumMatrixEntry[]>({
+    queryKey: ["curricula"],
+    queryFn: () => apiFetch<CurriculumMatrixEntry[]>("/curricula"),
+    staleTime: 30 * 60 * 1000,
   });
 }

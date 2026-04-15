@@ -1,0 +1,54 @@
+# 2022 개정 교육과정 별책 원문 수집 출처 목록 (수동 다운로드 기준).
+# 각 항목은 data/raw/manifest.json 에 SHA256 + 다운로드 시각과 함께 기록된다.
+# 자동 다운로드는 사용자 결정에 따라 비활성. operator가 수기로 받아 data/raw/ 에 drop.
+
+sources:
+  - id: ncic_middle_korean_2022
+    name: NCIC 중학교 국어 (2022 개정)
+    school_level: middle
+    subject: 국어
+    base_url: http://ncic.re.kr/
+    docs:
+      - kind: standards
+        title: 별책 5 국어과 (중학교)
+        notes: NCIC 게시판 검색 → 다운로드 후 data/raw/ 에 저장
+      - kind: levels
+        title: 2022 개정 교육과정에 따른 성취수준 (중·국어)
+        notes: KICE 연구보고서 (HWP/XLSX)
+    license_hint: 공공누리 제1유형
+
+  - id: ncic_middle_math_2022
+    name: NCIC 중학교 수학 (2022 개정)
+    school_level: middle
+    subject: 수학
+    base_url: http://ncic.re.kr/
+    docs:
+      - kind: standards
+        title: 별책 8 수학과 (중학교)
+      - kind: levels
+        title: 2022 개정 교육과정에 따른 성취수준 (중·수학)
+    license_hint: 공공누리 제1유형
+
+  - id: ncic_middle_english_2022
+    name: NCIC 중학교 영어 (2022 개정)
+    school_level: middle
+    subject: 영어
+    base_url: http://ncic.re.kr/
+    docs:
+      - kind: standards
+        title: 별책 14 영어과 (중학교)
+      - kind: levels
+        title: 2022 개정 교육과정에 따른 성취수준 (중·영어)
+    license_hint: 공공누리 제1유형
+
+  - id: ncic_middle_science_2022
+    name: NCIC 중학교 과학 (2022 개정)
+    school_level: middle
+    subject: 과학
+    base_url: http://ncic.re.kr/
+    docs:
+      - kind: standards
+        title: 별책 9 과학과 (중학교)
+      - kind: levels
+        title: 2022 개정 교육과정에 따른 성취수준 (중·과학)
+    license_hint: 공공누리 제1유형

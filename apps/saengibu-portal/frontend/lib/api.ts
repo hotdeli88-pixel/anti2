@@ -38,11 +38,20 @@ export async function apiFetch<T = unknown>(
   });
 
   if (!res.ok) {
+    // C-8: JSON 응답이 없거나 HTML(503/502 등)일 때도 의미 있는 메시지를 채운다.
     let problem: { type?: string; title?: string; detail?: string } = {};
     try {
       problem = await res.json();
     } catch {
-      /* ignore */
+      /* JSON 아님 — 폴백 카피 사용 */
+    }
+    if (!problem.title) {
+      problem.title =
+        res.status >= 500
+          ? `서버에 일시적 오류가 있어요 (HTTP ${res.status})`
+          : res.status === 0
+            ? "네트워크 연결을 확인해 주세요"
+            : `요청을 처리할 수 없어요 (HTTP ${res.status})`;
     }
     throw new ApiError(res.status, problem);
   }

@@ -8,9 +8,11 @@ from app.models.feedback import FeedbackReport, Violation
 from app.models.guideline import Guideline, SchoolDecision
 from app.models.audit import AuditLog
 from app.models.standards import (
+    AchievementLevel,
     AchievementStandard,
     ActivityTag,
     AiSuggestion,
+    DomainLevel,
     FavoriteTemplate,
     NoticePost,
     UploadedFile,
@@ -42,6 +44,8 @@ __all__ = [
     "SchoolDecision",
     "AuditLog",
     "AchievementStandard",
+    "AchievementLevel",
+    "DomainLevel",
     "ActivityTag",
     "FavoriteTemplate",
     "UploadedFile",

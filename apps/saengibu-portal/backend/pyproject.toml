@@ -47,6 +47,14 @@ ai = [
     "casbin>=1.36.0",
     "casbin-sqlalchemy-adapter>=1.4.0",
 ]
+seed = [
+    "openpyxl>=3.1.0",
+    "pdfplumber>=0.11.0",
+    "pymupdf>=1.24.0",
+    "jsonschema>=4.23.0",
+    "pyyaml>=6.0.0",
+    "chardet>=5.2.0",
+]
 
 [project.scripts]
 saengibu = "app.cli:app"

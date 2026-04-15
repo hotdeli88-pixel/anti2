@@ -42,11 +42,15 @@ async def build_mask_dict(
 
 
 def mask_text(text: str, mapping: dict[str, str]) -> str:
-    masked = text
+    """순서: RRN → PHONE → 이름.
+
+    이름 치환 토큰(`<S_…>`, `<T_…>`)이 숫자를 포함할 가능성을 차단하기 위해
+    숫자 정규식 마스킹을 먼저 적용한다. 이름은 길이 내림차순으로 치환해 부분 매칭 방지.
+    """
+    masked = RRN.sub("<RRN>", text)
+    masked = PHONE.sub("<PHONE>", masked)
     for name in sorted(mapping, key=len, reverse=True):
         masked = masked.replace(name, mapping[name])
-    masked = RRN.sub("<RRN>", masked)
-    masked = PHONE.sub("<PHONE>", masked)
     return masked
 
 
