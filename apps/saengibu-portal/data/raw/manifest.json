@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "description": "2022 개정 교육과정 별책 원문 다운로드 manifest. 커밋 가능한 텍스트 메타.",
+  "rules_version": "2022-33",
+  "files": [],
+  "convention": {
+    "filename": "<source>_<school_level>_<subject>_<seq>.<ext>",
+    "example": "ncic_middle_math_001.hwpx"
+  },
+  "_examples": [
+    {
+      "filename": "ncic_middle_math_001.hwpx",
+      "source": "NCIC",
+      "url": "http://ncic.re.kr/...",
+      "school_level": "middle",
+      "subject": "수학",
+      "sha256": "PUT_REAL_SHA256_HERE",
+      "byte_size": 0,
+      "retrieved_at": "2026-04-15T00:00:00Z",
+      "license": "공공누리 제1유형",
+      "downloaded_by": "operator-handle",
+      "notes": "별책 8 중학교 수학 - 본문 + 성취수준"
+    }
+  ]
+}

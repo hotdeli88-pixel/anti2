@@ -1,0 +1,98 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body {
+    @apply h-full;
+  }
+  body {
+    @apply bg-surface-body text-ink-dark font-sans antialiased;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand ring-offset-2 ring-offset-surface-body;
+  }
+  /* 접근성: reduce-motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-surface-border bg-white px-4 py-2.5 text-sm font-semibold text-ink-dark transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply border-transparent bg-brand text-white hover:bg-brand-hover;
+  }
+  .btn-outline {
+    @apply border-brand text-brand bg-transparent hover:bg-brand-light;
+  }
+  .btn-sm {
+    @apply px-3 py-1.5 text-[13px];
+  }
+
+  .card {
+    @apply rounded-lg border border-surface-border bg-white shadow-sm;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold;
+  }
+  .badge-pending {
+    @apply bg-[#FEF3C7] text-[#D97706];
+  }
+  .badge-approved {
+    @apply bg-[#D1FAE5] text-[#059669];
+  }
+  .badge-review {
+    @apply bg-[#DBEAFE] text-[#2563EB];
+  }
+  .badge-danger {
+    @apply bg-[#FEE2E2] text-[#DC2626];
+  }
+  .badge-neutral {
+    @apply bg-[#F3F4F6] text-[#6B7280];
+  }
+  .badge-ai {
+    @apply bg-[#EDE9FE] text-[#7C3AED];
+  }
+
+  /* Skeleton */
+  .skeleton {
+    @apply animate-pulse-soft rounded-md bg-surface-subtle;
+  }
+
+  /* AI 그라데이션 (피드백 완료 등) */
+  .bg-ai-gradient {
+    background: linear-gradient(135deg, #13C3C3 0%, #7C3AED 100%);
+  }
+  .text-ai-gradient {
+    background: linear-gradient(135deg, #13C3C3 0%, #7C3AED 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* Scrollbar 부드럽게 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}

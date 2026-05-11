@@ -1,0 +1,5 @@
+# raw 원문(HWP/PDF/XLSX)은 저장소에 커밋하지 않는다.
+# 출처 추적은 manifest.json 으로만 한다 (커밋됨).
+*
+!.gitignore
+!manifest.json

@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saengibu-portal.local/schemas/standard.schema.json",
+  "title": "AchievementStandardWithLevels",
+  "description": "2022 개정 교육과정 성취기준 JSONL 한 줄 (성취수준 포함).",
+  "type": "object",
+  "required": [
+    "curriculum",
+    "school_level",
+    "grade",
+    "subject_code",
+    "code",
+    "statement",
+    "eval_scale",
+    "rules_version"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "curriculum": {
+      "type": "string",
+      "enum": ["2022_revised", "2015_revised"]
+    },
+    "school_level": {
+      "type": "string",
+      "enum": ["elem", "middle", "high"]
+    },
+    "grade": { "type": "integer", "minimum": 1, "maximum": 6 },
+    "subject_code": { "type": "string", "minLength": 1, "maxLength": 20 },
+    "domain": { "type": ["string", "null"], "maxLength": 80 },
+    "domain_code": { "type": ["string", "null"], "maxLength": 20 },
+    "unit_code": { "type": ["string", "null"], "maxLength": 30 },
+    "unit_title": { "type": ["string", "null"], "maxLength": 120 },
+    "code": {
+      "type": "string",
+      "pattern": "^\\[[0-9]+[가-힣]+[0-9]{2}-[0-9]{2}\\]$",
+      "description": "예: [9수01-01], [10국02-03]"
+    },
+    "statement": { "type": "string", "minLength": 5, "maxLength": 500 },
+    "eval_scale": {
+      "type": "string",
+      "enum": ["5grade", "3grade", "P/F"]
+    },
+    "min_achievement": {
+      "type": ["string", "null"],
+      "enum": ["A", "B", "C", "D", "E", "P", "F", null]
+    },
+    "area_category": { "type": ["string", "null"] },
+    "rules_version": { "type": "string" },
+    "levels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["level", "descriptor", "order_index"],
+        "additionalProperties": false,
+        "properties": {
+          "level": { "type": "string", "enum": ["A", "B", "C", "D", "E", "P", "F"] },
+          "scale": { "type": "string", "enum": ["5grade", "3grade", "P/F"] },
+          "descriptor": { "type": "string", "minLength": 5, "maxLength": 1000 },
+          "order_index": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "cutline_hint": { "type": ["string", "null"], "maxLength": 80 }
+        }
+      }
+    },
+    "source": {
+      "type": ["object", "null"],
+      "properties": {
+        "name": { "type": "string" },
+        "url": { "type": ["string", "null"] },
+        "file_sha256": { "type": ["string", "null"] },
+        "retrieved_at": { "type": ["string", "null"], "format": "date-time" },
+        "license": { "type": ["string", "null"] }
+      }
+    }
+  }
+}
